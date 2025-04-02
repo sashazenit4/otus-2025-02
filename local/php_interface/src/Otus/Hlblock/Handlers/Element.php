@@ -19,6 +19,22 @@ class Element
 
         $result->modifyFields($fields);
 
+        $event->getEntity()->cleanCache();
+
+        return $result;
+    }
+
+    public static function onBeforeUpdateHandler(Event $event): EventResult
+    {
+        $result = new EventResult();
+        $event->getEntity()->cleanCache();
+        return $result;
+    }
+
+    public static function onBeforeDeleteHandler(Event $event): EventResult
+    {
+        $result = new EventResult();
+        $event->getEntity()->cleanCache();
         return $result;
     }
 }
