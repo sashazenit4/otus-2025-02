@@ -69,6 +69,10 @@ class BookGrid extends \CBitrixComponent implements Controllerable
             $this->setTemplateName('excel');
         }
 
+        if ($this->request->get('EXPORT_PDF_MODE') == 'Y') {
+            $this->setTemplateName('pdf');
+        }
+
         $this->prepareGridData();
         $this->includeComponentTemplate();
     }

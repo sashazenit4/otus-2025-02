@@ -22,7 +22,13 @@ $exportCurrentTableButton = [
     'text' => Loc::getMessage('EXPORT_XLSX_BUTTON_TITLE'),
 ];
 
+$exportCurrentTableButtonPdf = [
+    'link' => '?EXPORT_PDF_MODE=Y',
+    'text' => Loc::getMessage('EXPORT_PDF_BUTTON_TITLE'),
+];
+
 Toolbar::addButton($exportCurrentTableButton);
+Toolbar::addButton($exportCurrentTableButtonPdf);
 Toolbar::addFilter([
     'FILTER_ID' => $arResult['FILTER_ID'],
     'GRID_ID' => $arResult['FILTER_ID'],
