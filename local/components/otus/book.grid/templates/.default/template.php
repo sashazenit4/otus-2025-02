@@ -27,8 +27,20 @@ $exportCurrentTableButtonPdf = [
     'text' => Loc::getMessage('EXPORT_PDF_BUTTON_TITLE'),
 ];
 
+$addTestElementButton = [
+    'onclick' => 'BX.BookGrid.createTestElementViaModule',
+    'text' => 'Создать тестовый элемент',
+];
+
+$showNewGridButton = [
+    'onclick' => 'BX.BookGrid.showNewGrid',
+    'text' => 'Показать второй список',
+];
+
 Toolbar::addButton($exportCurrentTableButton);
 Toolbar::addButton($exportCurrentTableButtonPdf);
+Toolbar::addButton($addTestElementButton);
+Toolbar::addButton($showNewGridButton);
 Toolbar::addFilter([
     'FILTER_ID' => $arResult['FILTER_ID'],
     'GRID_ID' => $arResult['FILTER_ID'],
@@ -111,3 +123,4 @@ if (!empty($arParams['AJAX_LOADER'])) { ?>
         });
     </script>
 <?php } ?>
+<div class="new-component-container"></div>
