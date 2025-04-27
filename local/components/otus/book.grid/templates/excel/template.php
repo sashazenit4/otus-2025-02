@@ -1,31 +1,45 @@
 <?php
-
-if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true)
+if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
+}
 
-/**
- * @var CMain $APPLICATION
- * @var array $arResult
- */
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
+// Установка лимитов памяти и времени выполнения
+ini_set('memory_limit', '2048M');
+set_time_limit(0);
+
+// Отключение буферизации вывода
 while (ob_get_level()) {
     ob_end_clean();
 }
 
-use PhpOffice\PhpSpreadsheet\Spreadsheet; // Импорт класса Spreadsheet из библиотеки PhpSpreadsheet
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx; // Импорт класса Xlsx из библиотеки PhpSpreadsheet
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
+// Создание документа
+$spreadSheet = new Spreadsheet();
 
-$spreadSheet = new Spreadsheet(); // Создание нового объекта класса Spreadsheet
-$writer = new Xlsx($spreadSheet); // Создание нового объекта класса Xlsx с передачей объекта $spreadSheet в конструктор
-$activeSheet = $spreadSheet->getActiveSheet(); // Получение активного листа из объекта $spreadSheet
+// Оптимизация производительности
+$spreadSheet->getProperties()
+    ->setCreator("Your System")
+    ->setLastModifiedBy("Your System");
+$spreadSheet->getDefaultStyle()->getFont()->setName('Arial')->setSize(10);
+$spreadSheet->setActiveSheetIndex(0);
+$activeSheet = $spreadSheet->getActiveSheet();
 
-$column = 'A'; // Инициализация переменной $column со значением 'A'
-foreach ($arResult['HEADERS'] as $value) { // Цикл по элементам массива $arResult['COLUMNS']
-    $activeSheet->setCellValue($column.'1', $value['name']); // Установка значения ячейки с помощью метода setCellValue для текущего столбца и строки 1
-    $column++; // Инкрементация переменной $column для перехода к следующему столбцу
+// Отключение автоматических расчетов
+$spreadSheet->getCalculationEngine()->disableCalculationCache();
+$spreadSheet->getCalculationEngine()->clearCalculationCache();
+
+// Заголовки
+$column = 'A';
+foreach ($arResult['HEADERS'] as $value) {
+    $activeSheet->setCellValueExplicit($column.'1', $value['name'], DataType::TYPE_STRING);
+    $column++;
 }
 
+// Стили для заголовков
 $headersStyleArray = [
     'font' => [
         'bold' => true,
@@ -37,28 +51,49 @@ $headersStyleArray = [
         'wrapText' => true,
     ],
 ];
-
 $activeSheet->getStyle('A1:' . $column . '1')->applyFromArray($headersStyleArray);
 
-$row = 2; // Установка начального значения переменной $row равным 2 для начала заполнения строк со второй
-foreach ($arResult['GRID_LIST'] as $value) { // Цикл по элементам массива $arResult['LIST']
-    $column = 'A'; // Сброс переменной $column в начало столбца перед каждой строкой
-    foreach ($value['data'] as $itemText) { // Цикл по элементам массива $value['data']
-        $activeSheet->setCellValue($column.$row, $itemText); // Установка значения ячейки с помощью метода setCellValue для текущего столбца и строки $row
-        $column++; // Инкрементация переменной $column для перехода к следующему столбцу
+// Обработка данных по чанкам
+$chunkSize = 5000; // Размер чанка
+$row = 2;
+$totalRows = count($arResult['GRID_LIST']);
+$processed = 0;
+
+while ($processed < $totalRows) {
+    $chunk = array_slice($arResult['GRID_LIST'], $processed, $chunkSize);
+
+    foreach ($chunk as $value) {
+        $column = 'A';
+        foreach ($value['data'] as $itemText) {
+            // Используем setCellValueExplicit для оптимизации
+            $activeSheet->setCellValueExplicit($column.$row, $itemText, DataType::TYPE_STRING);
+            $column++;
+        }
+        $row++;
     }
-    $row++; // Инкрементация переменной $row для перехода к следующей строке
+
+    $processed += count($chunk);
+    // Освобождаем память после обработки каждого чанка
+    unset($chunk);
+    gc_collect_cycles();
 }
 
-foreach ($activeSheet->getColumnIterator() as $column) {
-    $activeSheet->getColumnDimension($column->getColumnIndex())->setAutoSize(true);
+// Автоподбор ширины столбцов только для первых 100 строк (для примера)
+for ($col = 'A'; $col <= $column; $col++) {
+    $activeSheet->getColumnDimension($col)->setAutoSize(true);
+    // Или фиксированная ширина для очень больших файлов
+    // $activeSheet->getColumnDimension($col)->setWidth(20);
 }
 
+// Отправка заголовков
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-header('Content-Disposition: attachment;filename="report.xlsx"');
+header('Content-Disposition: attachment;filename="report_'.date('Y-m-d').'.xlsx"');
 header('Cache-Control: max-age=0');
 
+// Потоковая запись в вывод
 $writer = new Xlsx($spreadSheet);
 $writer->save('php://output');
 
+// Освобождение памяти
+unset($spreadSheet, $writer);
 die();
