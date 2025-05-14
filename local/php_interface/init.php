@@ -8,3 +8,4 @@ if (file_exists(__DIR__ . '/src/autoloader.php')) {
 if (file_exists(__DIR__ . '/events.php')) {
     require_once __DIR__ . '/events.php';
 }
+\Bitrix\Main\UI\Extension::load(['aholin_crmcustomtab.useless_extensions.greeting-message']);
