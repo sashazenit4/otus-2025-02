@@ -6,6 +6,12 @@ use Bitrix\Main\Diag\FileExceptionHandlerLog;
 
 class FileExceptionHanlderLogCustom extends FileExceptionHandlerLog
 {
+    /**
+     * @param $exception
+     * @param $logType
+     * @return void
+     * Метод производит запись лога ошибки в файл
+     */
     public function write($exception, $logType)
     {
         $text = ExceptionHandlerFormatter::format($exception, false, $this->level);

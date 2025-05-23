@@ -1,6 +1,6 @@
-BX.namespace('AholinCrmCustomTab.UselessExtensions.GreetingMessage');
+BX.namespace('Homework.BeginDateButton');
 
-BX.AholinCrmCustomTab.UselessExtensions.GreetingMessage = {
+BX.Homework.BeginDateButton = {
     showMessage: function (message) {
         alert(message);
     },
@@ -37,7 +37,7 @@ BX.AholinCrmCustomTab.UselessExtensions.GreetingMessage = {
                     className: 'ui-btn ui-btn-success', // доп. классы
                     events: {
                         click: function() {
-                            BX.AholinCrmCustomTab.UselessExtensions.GreetingMessage.startDate();
+                            BX.Homework.BeginDateButton.startDate();
                         }
                     }
                 }),
@@ -54,10 +54,10 @@ BX.AholinCrmCustomTab.UselessExtensions.GreetingMessage = {
             ],
             events: {
                 onPopupShow: function() {
-                    BX.AholinCrmCustomTab.UselessExtensions.GreetingMessage.showMessage('Вы открыли окно начала рабочего дня!');
+                    BX.Homework.BeginDateButton.showMessage('Вы открыли окно начала рабочего дня!');
                 },
                 onPopupClose: function() {
-                    BX.AholinCrmCustomTab.UselessExtensions.GreetingMessage.showMessage('Вы закрыли окно начала рабочего дня!');
+                    BX.Homework.BeginDateButton.showMessage('Вы закрыли окно начала рабочего дня!');
                 }
             }
         });
@@ -65,12 +65,27 @@ BX.AholinCrmCustomTab.UselessExtensions.GreetingMessage = {
         popup.show();
     },
     startDate: function () {
-        //
+        BX.ajax.runAction('aholin:crmcustomtab.TimemanActions.TimemanController.startDate', {
+            data: {},
+        });
     }
 };
+
 BX.addCustomEvent('onTimeManWindowBuild', function () {
-    let popupDiv = document.createElement('div');
-    popupDiv.id = 'greeting-message-popup';
-    window.body.appendChild(popupDiv);
-    BX.AholinCrmCustomTab.UselessExtensions.GreetingMessage.onStartWorkingDateAction(popupDiv.id);
+    let timemanPopup = BX('timeman_main');
+    let startOrContinueDayButton = timemanPopup.querySelector('button.ui-btn.ui-btn-icon-start');
+
+    startOrContinueDayButton.innerHTML = '';
+    startOrContinueDayButton.onclick = function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+
+        let popupDiv = document.createElement('div');
+        popupDiv.id = 'greeting-message-popup';
+        document.body.appendChild(popupDiv);
+        BX.Homework.BeginDateButton.onStartWorkingDateAction(popupDiv.id);
+
+        return false;
+    };
 });
