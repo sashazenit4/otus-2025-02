@@ -4,6 +4,7 @@ use Bitrix\Main\Web\Json;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\UI\Toolbar\Facade\Toolbar;
 use Bitrix\Main\Loader;
+use Bitrix\Main\UI\Extension;
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true)
     die();
@@ -15,6 +16,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true)
  * @global $component
  */
 
+Extension::load('aclips.ui-grid-collapse');
 Loader::includeModule('ui');
 
 $exportCurrentTableButton = [
@@ -67,11 +69,6 @@ $APPLICATION->IncludeComponent(
         'AJAX_OPTION_STYLE' => 'N',
         'AJAX_OPTION_HISTORY' => 'N',
         'AJAX_LOADER' => $arParams['AJAX_LOADER'],
-        'AJAX_ID' => \CAjax::getComponentID(
-            'bitrix:main.ui.grid',
-            '.default',
-            ''
-        ),
         'ALLOW_COLUMNS_SORT' => true,
         'ALLOW_ROWS_SORT' => [],
         'ALLOW_COLUMNS_RESIZE' => true,
@@ -107,6 +104,17 @@ $APPLICATION->IncludeComponent(
     ],
     $component,
 );
+?>
+<script>
+    BX.ready(() => {
+        BX.Aclips.Plugin.UIGridCollapse.initCollapse('<?=$arResult['FILTER_ID']?>', {
+            'default-collapse': true,
+            'is-section-selector': '[is-section="true"]',
+            'parent-attribute': 'parent',
+        });
+    });
+</script>
+<?php
 if (!empty($arParams['AJAX_LOADER'])) { ?>
     <script>
         BX.addCustomEvent('Grid::beforeRequest', function (gridData, argse) {

@@ -10,7 +10,7 @@ use Bitrix\Main\Loader;
 use Bitrix\Main\ORM\Query\Result;
 
 Loader::includeModule('aholin.crmcustomtab');
-class BookGrid extends \CBitrixComponent implements Controllerable
+class ModifiedBookGrid extends \CBitrixComponent implements Controllerable
 {
     public function configureActions(): array
     {
@@ -19,6 +19,9 @@ class BookGrid extends \CBitrixComponent implements Controllerable
                 'prefilters' => [],
             ],
             'createTestElement' => [
+                'prefilters' => [],
+            ],
+            'openComponent' => [
                 'prefilters' => [],
             ],
         ];
@@ -231,12 +234,16 @@ class BookGrid extends \CBitrixComponent implements Controllerable
             $filter['<=YEAR'] = $filterData['YEAR_to'];
         }
 
-        if (!empty($filterData['PUBLISH_DATE_from'])) {
-            $filter['>=PUBLISH_DATE'] = $filterData['PUBLISH_DATE_from'];
-        }
-
-        if (!empty($filterData['PUBLISH_DATE_to'])) {
-            $filter['<=PUBLISH_DATE'] = $filterData['PUBLISH_DATE_to'];
+        foreach ($filterData as $field => $value) {
+            if (
+                str_contains($field, '_from')
+            ) {
+                $fieldName = substr($field, 0, strlen($field) - 5);
+                $filter['>=' . $fieldName] = $value;
+            } elseif (str_contains($field, '_to')) {
+                $fieldName = substr($field, 0, strlen($field) - 3);
+                $filter['<=' . $fieldName] = $value;
+            }
         }
 
         return $filter;
@@ -271,7 +278,7 @@ class BookGrid extends \CBitrixComponent implements Controllerable
         }
 
         foreach ($groupedBooks as $book) {
-            $gridList[] = [
+            $element = [
                 'data' => [
                     'ID' => $book['ID'],
                     'TITLE' => $book['TITLE'],
@@ -281,7 +288,20 @@ class BookGrid extends \CBitrixComponent implements Controllerable
                     'PUBLISH_DATE' => $book['PUBLISH_DATE']->format('d.m.Y'),
                 ],
                 'actions' => $this->getElementActions($book['ID']),
+                'id' => $book['ID'],
+                'attrs' => [
+                    'is-section' => true,
+                ],
             ];
+            $prevElement = $gridList[array_key_last($gridList)];
+            if ($prevElement['attrs']['is-section']) {
+                $element['attrs'] = [
+                    'is-section' => false,
+                    'parent' => $prevElement['id'],
+                ];
+            }
+
+            $gridList[] = $element;
         }
 
         return $gridList;
@@ -309,5 +329,10 @@ class BookGrid extends \CBitrixComponent implements Controllerable
                 'default' => true,
             ],
         ];
+    }
+
+    public function openComponentAction(): \Bitrix\Main\Engine\Response\Component
+    {
+        return  new \Bitrix\Main\Engine\Response\Component('aholin.crmcustomtab:book.grid', '', []);
     }
 }

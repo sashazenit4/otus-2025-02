@@ -15,3 +15,8 @@ $eventManager->addEventHandler('', 'MaterialTypesOnBeforeDelete', [
     '\Otus\Hlblock\Handlers\Element',
     'onBeforeDeleteHandler',
 ]);
+
+$eventManager->addEventHandler('main', 'OnBeforeProlog', [
+    '\Otus\Main\Handlers',
+    'onBeforePrologHandler',
+]);
