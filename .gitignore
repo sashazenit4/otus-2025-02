@@ -9,3 +9,4 @@
 *.doc
 *.xlsx
 /.idea/
+.env
